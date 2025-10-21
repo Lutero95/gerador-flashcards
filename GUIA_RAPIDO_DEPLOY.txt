@@ -1,0 +1,107 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║              🚀 GUIA RÁPIDO - DEPLOY NO VERCEL                       ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+✨ COLOQUE SEU GERADOR DE FLASHCARDS ONLINE EM 5 MINUTOS! ✨
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 O QUE VOCÊ PRECISA:
+
+   ✅ Conta no GitHub (gratuita) - https://github.com
+   ✅ Conta no Vercel (gratuita) - https://vercel.com
+   ✅ 5 minutos do seu tempo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 PASSO A PASSO SIMPLIFICADO:
+
+1️⃣  CRIAR REPOSITÓRIO NO GITHUB
+    
+    → Acesse: https://github.com/new
+    → Nome: gerador-flashcards-anki
+    → Clique em "Create repository"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2️⃣  SUBIR O CÓDIGO (Execute no terminal):
+
+    git init
+    git add .
+    git commit -m "Deploy para Vercel"
+    git branch -M main
+    git remote add origin https://github.com/SEU_USUARIO/gerador-flashcards-anki.git
+    git push -u origin main
+
+    ⚠️ Substitua SEU_USUARIO pelo seu usuário do GitHub!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3️⃣  DEPLOY NO VERCEL
+
+    → Acesse: https://vercel.com
+    → Clique em "Add New" → "Project"
+    → Selecione seu repositório do GitHub
+    → Clique em "Import"
+    → Clique em "Deploy"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4️⃣  PRONTO! 🎉
+
+    Você receberá uma URL tipo:
+    https://seu-projeto.vercel.app
+
+    Compartilhe com qualquer pessoa no mundo! 🌍
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 ATUALIZAR O SITE:
+
+    Sempre que fizer mudanças no código, execute:
+
+    git add .
+    git commit -m "Descrição das mudanças"
+    git push
+
+    O Vercel atualiza automaticamente! ✨
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎁 BENEFÍCIOS:
+
+    ✅ Gratuito forever (plano free generoso)
+    ✅ HTTPS automático e seguro
+    ✅ CDN global (rápido em qualquer lugar)
+    ✅ 100GB de banda mensal
+    ✅ Deploy automático a cada push
+    ✅ Zero configuração de servidor
+    ✅ Escalável automaticamente
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 GUIA COMPLETO:
+
+    Para mais detalhes, veja: DEPLOY_VERCEL.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ DÚVIDAS?
+
+    • Documentação Vercel: https://vercel.com/docs
+    • GitHub: https://docs.github.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔥 DICA PRO:
+
+    Adicione um domínio personalizado no Vercel:
+    Settings → Domains → Add Domain
+
+    Ex: flashcards.seudominio.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Boa sorte com seu deploy! 🚀✨
+
+

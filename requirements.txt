@@ -1,0 +1,4 @@
+Flask==2.0.3
+genanki==0.13.0
+Werkzeug==2.0.3
+

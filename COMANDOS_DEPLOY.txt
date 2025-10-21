@@ -1,0 +1,159 @@
+═══════════════════════════════════════════════════════════════════════
+  📋 COMANDOS PRONTOS PARA COPIAR E COLAR - DEPLOY NO VERCEL
+═══════════════════════════════════════════════════════════════════════
+
+🔹 PASSO 1: INICIALIZAR GIT
+───────────────────────────────────────────────────────────────────────
+
+git init
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 2: ADICIONAR TODOS OS ARQUIVOS
+───────────────────────────────────────────────────────────────────────
+
+git add .
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 3: FAZER O COMMIT INICIAL
+───────────────────────────────────────────────────────────────────────
+
+git commit -m "Deploy: Gerador de Flashcards Anki para Vercel"
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 4: DEFINIR A BRANCH COMO MAIN
+───────────────────────────────────────────────────────────────────────
+
+git branch -M main
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 5: CONECTAR AO REPOSITÓRIO DO GITHUB
+───────────────────────────────────────────────────────────────────────
+
+⚠️ ATENÇÃO: Antes de executar este comando:
+   1. Crie um repositório no GitHub: https://github.com/new
+   2. Substitua SEU_USUARIO pelo seu nome de usuário do GitHub
+   3. Substitua NOME_REPOSITORIO pelo nome que você criou
+
+git remote add origin https://github.com/SEU_USUARIO/NOME_REPOSITORIO.git
+
+Exemplo:
+git remote add origin https://github.com/joaosilva/gerador-flashcards.git
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 6: ENVIAR O CÓDIGO PARA O GITHUB
+───────────────────────────────────────────────────────────────────────
+
+git push -u origin main
+
+Se pedir credenciais, use:
+• Username: seu usuário do GitHub
+• Password: use um Personal Access Token (não a senha normal)
+  Como criar token: https://github.com/settings/tokens
+
+───────────────────────────────────────────────────────────────────────
+
+🔹 PASSO 7: DEPLOY NO VERCEL
+───────────────────────────────────────────────────────────────────────
+
+NÃO É COMANDO! Faça pelo navegador:
+
+1. Acesse: https://vercel.com
+2. Faça login (pode usar conta do GitHub)
+3. Clique em "Add New" → "Project"
+4. Clique em "Import Git Repository"
+5. Selecione seu repositório
+6. Clique em "Import"
+7. Clique em "Deploy"
+8. Aguarde 1-2 minutos
+9. PRONTO! Você receberá uma URL pública
+
+───────────────────────────────────────────────────────────────────────
+
+🔄 COMANDOS PARA ATUALIZAÇÕES FUTURAS
+───────────────────────────────────────────────────────────────────────
+
+Sempre que fizer mudanças no código, execute na ordem:
+
+git add .
+git commit -m "Descrição das mudanças que você fez"
+git push
+
+O Vercel fará o redeploy automaticamente!
+
+───────────────────────────────────────────────────────────────────────
+
+✅ CHECKLIST ANTES DE COMEÇAR
+───────────────────────────────────────────────────────────────────────
+
+[ ] Tenho conta no GitHub
+[ ] Criei um novo repositório no GitHub
+[ ] Anotei o nome do repositório
+[ ] Tenho Git instalado no computador
+[ ] Estou na pasta do projeto no terminal
+
+───────────────────────────────────────────────────────────────────────
+
+❓ COMO VERIFICAR SE TEM GIT INSTALADO?
+───────────────────────────────────────────────────────────────────────
+
+git --version
+
+Se aparecer a versão (ex: git version 2.40.0), está instalado!
+Se não, baixe em: https://git-scm.com/downloads
+
+───────────────────────────────────────────────────────────────────────
+
+🆘 RESOLVENDO PROBLEMAS COMUNS
+───────────────────────────────────────────────────────────────────────
+
+ERRO: "git is not recognized"
+SOLUÇÃO: Instale o Git: https://git-scm.com/downloads
+
+ERRO: "remote origin already exists"
+SOLUÇÃO: Execute: git remote remove origin
+         Depois tente o comando git remote add novamente
+
+ERRO: "failed to push"
+SOLUÇÃO: 1. Verifique se o repositório existe no GitHub
+         2. Use Personal Access Token em vez de senha
+         3. Verifique se tem permissão no repositório
+
+ERRO: "Please tell me who you are" (git)
+SOLUÇÃO: Configure seu Git:
+         git config --global user.email "seu@email.com"
+         git config --global user.name "Seu Nome"
+
+───────────────────────────────────────────────────────────────────────
+
+🎯 RESULTADO ESPERADO
+───────────────────────────────────────────────────────────────────────
+
+Após concluir todos os passos, você terá:
+
+✅ Código no GitHub (backup seguro)
+✅ Site online no Vercel
+✅ URL pública tipo: https://seu-projeto.vercel.app
+✅ Deploy automático a cada push
+✅ HTTPS gratuito
+✅ CDN global (rápido em todo mundo)
+
+───────────────────────────────────────────────────────────────────────
+
+📱 COMPARTILHE SUA URL!
+───────────────────────────────────────────────────────────────────────
+
+Depois do deploy, compartilhe sua URL com:
+• Amigos que estudam
+• Grupos de estudo
+• Redes sociais
+• Comunidades do Anki
+
+Ajude mais pessoas a criar flashcards facilmente! 🎉
+
+═══════════════════════════════════════════════════════════════════════
+

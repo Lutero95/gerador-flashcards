@@ -1,0 +1,44 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# Virtual Environment
+venv
+env
+ENV
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local files
+uploads
+output
+*.apkg
+*.log
+
+# Git
+.git
+.gitignore
+
+# Documentation
+COMO_USAR.txt
+exemplo.json
+
+# Old app (manter apenas api/index.py)
+app.py
+

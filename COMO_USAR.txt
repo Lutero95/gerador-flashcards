@@ -1,0 +1,76 @@
+╔══════════════════════════════════════════════════════════════╗
+║         GERADOR DE FLASHCARDS ANKI - GUIA RÁPIDO            ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ INSTALAÇÃO CONCLUÍDA COM SUCESSO!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 COMO INICIAR O SERVIDOR:
+
+   py app.py
+
+   (O servidor iniciará em http://localhost:5000)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 ACESSAR A APLICAÇÃO:
+
+   1. Abra seu navegador (Chrome, Firefox, Edge, etc.)
+   2. Digite na barra de endereço: http://localhost:5000
+   3. Você verá a interface do Gerador de Flashcards
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📤 COMO USAR:
+
+   1. Prepare seu arquivo JSON (veja exemplo.json)
+   2. Arraste o arquivo para a área de upload OU clique para selecionar
+   3. Clique em "Gerar Deck Anki"
+   4. Aguarde o processamento
+   5. Clique em "Baixar Deck APKG"
+   6. Importe o arquivo .apkg no Anki
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 FORMATO DO JSON:
+
+{
+  "nome_deck": "Nome do seu baralho",
+  "cards": [
+    {
+      "pergunta": "Sua pergunta aqui?",
+      "resposta": "Sua resposta aqui"
+    },
+    {
+      "pergunta": "Outra pergunta?",
+      "resposta": "Outra resposta"
+    }
+  ]
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 TESTAR:
+
+   Use o arquivo "exemplo.json" incluído no projeto para testar!
+   Ele contém 10 flashcards de conhecimentos gerais.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ IMPORTANTE:
+
+   • Use sempre: py app.py (não "python app.py")
+   • Para instalar dependências: py -m pip install -r requirements.txt
+   • Para parar o servidor: pressione Ctrl+C no terminal
+   
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ PROBLEMAS?
+
+   Veja o arquivo README.md para mais detalhes e solução de problemas.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Bons estudos! 📚✨
+

@@ -1,0 +1,46 @@
+{
+  "nome_deck": "Conhecimentos Gerais",
+  "cards": [
+    {
+      "pergunta": "Qual é a capital do Brasil?",
+      "resposta": "Brasília"
+    },
+    {
+      "pergunta": "Quanto é 2 + 2?",
+      "resposta": "4"
+    },
+    {
+      "pergunta": "Quem descobriu o Brasil?",
+      "resposta": "Pedro Álvares Cabral em 1500"
+    },
+    {
+      "pergunta": "Qual é o maior planeta do Sistema Solar?",
+      "resposta": "Júpiter"
+    },
+    {
+      "pergunta": "Quantos continentes existem?",
+      "resposta": "7 continentes: África, Antártida, Ásia, Europa, América do Norte, América do Sul e Oceania"
+    },
+    {
+      "pergunta": "Qual é a fórmula da água?",
+      "resposta": "H₂O (dois átomos de hidrogênio e um de oxigênio)"
+    },
+    {
+      "pergunta": "Em que ano o homem pisou na Lua pela primeira vez?",
+      "resposta": "1969 (Apollo 11, com Neil Armstrong)"
+    },
+    {
+      "pergunta": "Qual é a velocidade da luz?",
+      "resposta": "Aproximadamente 300.000 km/s no vácuo"
+    },
+    {
+      "pergunta": "Quem pintou a Mona Lisa?",
+      "resposta": "Leonardo da Vinci"
+    },
+    {
+      "pergunta": "Qual é o país com maior população do mundo?",
+      "resposta": "Índia (ultrapassou a China recentemente)"
+    }
+  ]
+}
+
