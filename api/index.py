@@ -7,26 +7,13 @@ from io import BytesIO
 from flask import Flask, request, send_file, render_template, jsonify
 from werkzeug.utils import secure_filename
 
+# Configurar Flask para Vercel
 app = Flask(__name__, template_folder='../templates')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 
 def criar_deck_anki(dados_json, nome_deck="Flashcards"):
-    """
-    Cria um deck Anki a partir de dados JSON.
-    
-    Formato esperado do JSON:
-    {
-        "nome_deck": "Nome do Baralho" (opcional),
-        "cards": [
-            {
-                "pergunta": "Qual é a pergunta?",
-                "resposta": "Esta é a resposta"
-            },
-            ...
-        ]
-    }
-    """
+    """Cria um deck Anki a partir de dados JSON."""
     # Gerar IDs únicos para o modelo e deck
     modelo_id = random.randrange(1 << 30, 1 << 31)
     deck_id = random.randrange(1 << 30, 1 << 31)
@@ -171,22 +158,6 @@ def upload_arquivo():
         return jsonify({'erro': f'Erro ao processar arquivo: {str(e)}'}), 500
 
 
-# Handler para o Vercel
-def handler(request):
-    with app.request_context(request.environ):
-        try:
-            response = app.full_dispatch_request()
-        except Exception as e:
-            response = jsonify({'erro': str(e)}), 500
-        return response
-
-
+# Exportar o app para o Vercel
 if __name__ == '__main__':
-    print("=" * 50)
-    print("Gerador de Flashcards Anki")
-    print("=" * 50)
-    print("Servidor iniciado em http://localhost:5000")
-    print("Pressione Ctrl+C para encerrar")
-    print("=" * 50)
     app.run(debug=True, host='0.0.0.0', port=5000)
-
