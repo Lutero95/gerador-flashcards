@@ -296,6 +296,21 @@
         uploadBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
 
+            // Primeiro, contar os cards do arquivo JSON
+            let cardCount = 'vários';
+            try {
+                const text = await selectedFile.text();
+                const jsonData = JSON.parse(text);
+                
+                if (Array.isArray(jsonData)) {
+                    cardCount = jsonData.length;
+                } else if (jsonData.cards && Array.isArray(jsonData.cards)) {
+                    cardCount = jsonData.cards.length;
+                }
+            } catch (e) {
+                // Se não conseguir ler, usar valor padrão
+            }
+
             const formData = new FormData();
             formData.append('arquivo', selectedFile);
 
@@ -334,17 +349,17 @@
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
                     
-                    showMessage('✅ Deck gerado com sucesso! O download iniciará automaticamente.', 'success');
+                    showMessage(`✅ Deck gerado com sucesso! ${cardCount} flashcards criados. O download iniciará automaticamente.`, 'success');
                     uploadBtn.disabled = false;
                     
-                    // Resetar formulário após 3 segundos
+                    // Resetar formulário após 4 segundos
                     setTimeout(() => {
                         fileInfo.style.display = 'none';
                         message.style.display = 'none';
                         selectedFile = null;
                         fileInput.value = '';
                         uploadBtn.disabled = true;
-                    }, 3000);
+                    }, 4000);
                 } else {
                     // Resposta é JSON com erro
                     const data = await response.json();
