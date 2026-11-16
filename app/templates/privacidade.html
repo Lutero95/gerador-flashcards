@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Privacidade — Gerador de Flashcards{% endblock %}
+
+{% block conteudo %}
+<article class="largura secao texto-legal">
+    <h1>Política de Privacidade</h1>
+    <p class="nota">Versão de 28/09/2026. Esta política segue a Lei Geral de Proteção de Dados (Lei 13.709/2018).</p>
+
+    <h2>1. Quais dados usamos e para quê</h2>
+    <ul>
+        <li><strong>Tema, textos e arquivos que você envia:</strong> para gerar o seu baralho.</li>
+        <li><strong>E-mail:</strong> para o pagamento via Pix e para falarmos com você sobre o pedido.</li>
+        <li><strong>Cards gerados:</strong> para você baixar o baralho pelo link do pedido.</li>
+        <li><strong>Endereço IP e um identificador do navegador:</strong> só para limitar abusos (quantidade de prévias
+            grátis e de requisições). O IP não é guardado: guardamos apenas um código derivado dele, que não permite
+            descobrir o endereço.</li>
+        <li><strong>Dados de pagamento:</strong> ficam com o Mercado Pago. Não recebemos nem guardamos dados bancários.</li>
+    </ul>
+
+    <h2>2. Com quem os dados são compartilhados</h2>
+    <ul>
+        <li><strong>Google (API Gemini):</strong> processa o tema e o material enviado para gerar os cards.</li>
+        <li><strong>Mercado Pago:</strong> processa o pagamento via Pix.</li>
+        <li><strong>Cloudflare (Turnstile):</strong> verifica que quem pede a prévia não é um robô.</li>
+        <li><strong>Vercel e o provedor do banco de dados:</strong> hospedam o site e os pedidos.</li>
+        <li><strong>Google Fonts:</strong> fornece a fonte do site; seu navegador a baixa diretamente do Google.</li>
+    </ul>
+    <p>Não vendemos dados nem os usamos para publicidade.</p>
+
+    <h2>3. Por quanto tempo guardamos</h2>
+    <ul>
+        <li><strong>Arquivos enviados:</strong> apagados do provedor de IA assim que a geração termina (ou, se o pedido não
+            for pago, em até 48 horas, quando o próprio provedor os descarta).</li>
+        <li><strong>Texto extraído do material:</strong> apagado quando a geração termina, ou em até 7 dias se o pedido
+            não for pago.</li>
+        <li><strong>Pedido e cards:</strong> disponíveis para download por 30 dias após a conclusão.</li>
+        <li><strong>Contadores de uso (limites):</strong> apagados em até 2 dias.</li>
+    </ul>
+
+    <h2>4. Cookies e armazenamento no navegador</h2>
+    <p>Usamos um único cookie, necessário ao funcionamento (identifica o navegador para os limites de prévias grátis).
+        O navegador também guarda os links dos seus últimos pedidos, para você retomá-los. Não usamos cookies de
+        publicidade nem de rastreamento.</p>
+
+    <h2>5. Seus direitos</h2>
+    <p>Você pode pedir acesso, correção ou exclusão dos seus dados, e informações sobre o tratamento
+        {% if contato_email %}pelo e-mail <a href="mailto:{{ contato_email }}">{{ contato_email }}</a>{% else %}pelo canal
+        de contato indicado no rodapé{% endif %}. Informe o link do pedido para localizarmos os dados.</p>
+</article>
+{% endblock %}

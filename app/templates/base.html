@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Gerador de Flashcards{% endblock %}</title>
+    <meta name="description" content="Gere baralhos de flashcards com IA a partir de um tema, arquivo ou texto. Compatíveis com o Anki. Prévia grátis, pagamento único via Pix.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v={{ versao_estaticos }}">
+</head>
+<body>
+    <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+    <header class="topo">
+        <div class="largura">
+            <a class="marca" href="/">
+                {% include 'icones/marca.svg' %}
+                <span>Gerador de Flashcards</span>
+            </a>
+            <nav aria-label="Principal">
+                <a href="/#como-funciona">Como funciona</a>
+                <a href="/#precos">Preços</a>
+                <a href="/#perguntas">Dúvidas</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="conteudo" {% block atributos_main %}{% endblock %}>
+        {% block conteudo %}{% endblock %}
+    </main>
+
+    <footer class="rodape">
+        <div class="largura">
+            <nav aria-label="Institucional">
+                <a href="/termos">Termos de uso</a>
+                <a href="/privacidade">Privacidade</a>
+                {% if contato_email %}<a href="mailto:{{ contato_email }}">Contato: {{ contato_email }}</a>{% endif %}
+            </nav>
+            <p>Anki® é marca registrada da Ankitects. Este site não é afiliado nem endossado pelo Anki.
+               Os baralhos gerados são compatíveis com o Anki e o AnkiDroid.</p>
+            <p>Conteúdo gerado por inteligência artificial: confira fatos importantes antes de memorizar.</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

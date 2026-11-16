@@ -1,0 +1,2 @@
+Configurar transação identificada por geração de baralho
+só liberar após pagamento

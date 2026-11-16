@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Termos de uso — Gerador de Flashcards{% endblock %}
+
+{% block conteudo %}
+<article class="largura secao texto-legal">
+    <h1>Termos de uso</h1>
+    <p class="nota">Versão de 28/09/2026.</p>
+
+    <h2>1. O serviço</h2>
+    <p>O Gerador de Flashcards cria baralhos de estudo com inteligência artificial a partir de um tema, de arquivos ou
+        de textos enviados por você, e os entrega em arquivo compatível com o Anki (.apkg) e em PDF com as fontes.</p>
+
+    <h2>2. Prévia grátis e preço</h2>
+    <ul>
+        <li>Antes de pagar, você pode ver uma prévia grátis com o plano do baralho e alguns cards. As prévias grátis têm
+            limite diário.</li>
+        <li>O preço depende da quantidade de cards e aparece antes de você gerar a prévia e antes do pagamento. O
+            pagamento é único, via Pix, sem assinatura.</li>
+        <li>O baralho completo é gerado depois da confirmação do pagamento e fica disponível para download por 30 dias
+            no link do pedido.</li>
+    </ul>
+
+    <h2>3. Reembolso</h2>
+    <ul>
+        <li>Se a IA não conseguir gerar pelo menos 90% dos cards comprados, você escolhe, na página do pedido, entre ficar
+            com os cards gerados e receber de volta o valor proporcional ao que faltou, ou receber o reembolso total.</li>
+        <li>Se o baralho entregue não corresponder ao que foi descrito na prévia, fale conosco em até 7 dias após a compra
+            {% if contato_email %}pelo e-mail <a href="mailto:{{ contato_email }}">{{ contato_email }}</a>{% else %}pelo
+            canal de contato indicado no rodapé{% endif %}, informando o link do pedido, e devolvemos o valor pago.</li>
+        <li>Pagamentos em duplicidade para o mesmo pedido são devolvidos automaticamente.</li>
+        <li>Os reembolsos são feitos pelo Mercado Pago, pelo mesmo meio do pagamento.</li>
+    </ul>
+
+    <h2>4. Conteúdo gerado por IA</h2>
+    <p>Os cards são gerados por inteligência artificial e podem conter erros. Confira informações importantes — números
+        de artigos de lei, prazos, doses, datas e valores — antes de memorizá-las. O serviço não substitui material
+        oficial, orientação profissional nem protocolos clínicos.</p>
+
+    <h2>5. Material que você envia</h2>
+    <ul>
+        <li>Você é responsável pelo material que envia e declara ter o direito de usá-lo para o seu estudo. Não envie
+            conteúdo de terceiros que você não possa usar, nem dados pessoais de outras pessoas.</li>
+        <li>Os baralhos são para uso pessoal de estudo. Não é permitido revender baralhos gerados a partir de material
+            protegido por direitos autorais.</li>
+        <li>Como o material é tratado está descrito na <a href="/privacidade">Política de Privacidade</a>.</li>
+    </ul>
+
+    <h2>6. Uso aceitável</h2>
+    <p>Não é permitido usar o serviço de forma automatizada para contornar os limites de prévias, sobrecarregar o
+        sistema ou gerar conteúdo ilegal. Podemos limitar ou bloquear o acesso em caso de abuso.</p>
+
+    <h2>7. Marca</h2>
+    <p>Anki® é marca registrada da Ankitects. Este site não é afiliado nem endossado pelo Anki; os arquivos gerados são
+        apenas compatíveis com ele.</p>
+
+    <h2>8. Contato</h2>
+    <p>{% if contato_email %}Dúvidas sobre estes termos: <a href="mailto:{{ contato_email }}">{{ contato_email }}</a>.
+        {% else %}Dúvidas sobre estes termos: use o canal de contato indicado no rodapé.{% endif %}</p>
+</article>
+{% endblock %}

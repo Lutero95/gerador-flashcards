@@ -4,6 +4,16 @@
       "source": "/(.*)",
       "destination": "/api/index"
     }
+  ],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/tarefas/limpeza",
+      "schedule": "0 7 * * *"
+    }
   ]
 }
-

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% macro preco_para(quantidade) -%}
+    {%- for faixa in faixas_preco if quantidade <= faixa.ate -%}{% if loop.first %}{{ faixa.texto }}{% endif %}{%- endfor -%}
+{%- endmacro %}
+
+{% block atributos_main %}data-max-cards="{{ max_cards }}" data-faixas='{{ faixas_preco | tojson }}'{% endblock %}
+
+{% block conteudo %}
+<section class="hero">
+    <div class="largura inicio-grid">
+        <div class="intro">
+            <h1>Flashcards prontos para estudar, a partir do seu conteúdo</h1>
+            <p class="subtitulo">Descreva um tema, envie um arquivo ou cole um texto. Veja uma prévia grátis e só pague
+                se gostar: um Pix, sem assinatura. Os baralhos abrem no Anki e no AnkiDroid.</p>
+
+
+            <nav class="aviso info" id="pedidosRecentes" aria-label="Seus pedidos" hidden>
+                <strong id="pedidosTitulo"></strong>
+                <ul id="listaPedidos"></ul>
+            </nav>
+        </div>
+
+        <div class="cartao gerador">
+            <h2 class="visualmente-oculto">Criar baralho</h2>
+            <ol class="passos" aria-label="Etapas">
+                <li class="atual" aria-current="step"><span class="numero">1</span><span class="rotulo">Descreva</span></li>
+                <li><span class="numero">2</span><span class="rotulo">Veja a prévia</span></li>
+                <li><span class="numero">3</span><span class="rotulo">Pague e baixe</span></li>
+            </ol>
+
+            <form id="formGerador" novalidate>
+                <div class="abas" role="tablist" aria-label="Como você quer criar o baralho">
+                    <button type="button" class="aba" role="tab" id="aba-tema" aria-controls="painel-tema"
+                            aria-selected="true" data-tipo="tema">{% include 'icones/tema.svg' %}Tema</button>
+                    <button type="button" class="aba" role="tab" id="aba-arquivo" aria-controls="painel-arquivo"
+                            aria-selected="false" tabindex="-1" data-tipo="arquivo">{% include 'icones/arquivo.svg' %}Arquivo</button>
+                    <button type="button" class="aba" role="tab" id="aba-texto" aria-controls="painel-texto"
+                            aria-selected="false" tabindex="-1" data-tipo="texto">{% include 'icones/texto.svg' %}Colar texto</button>
+                </div>
+
+                <div role="tabpanel" id="painel-tema" aria-labelledby="aba-tema" tabindex="0">
+                    <div class="campo">
+                        <label for="assuntoTema">Sobre o que você quer estudar?</label>
+                        <textarea id="assuntoTema" rows="4" maxlength="2000"
+                                  placeholder="Ex.: Ciclo de Krebs, Lei 8.112 (prazos), verbos irregulares em inglês"></textarea>
+                    </div>
+                </div>
+
+                <div role="tabpanel" id="painel-arquivo" aria-labelledby="aba-arquivo" tabindex="0" hidden>
+                    <div class="campo">
+                        <label for="assuntoArquivo">Assunto</label>
+                        <input type="text" id="assuntoArquivo" maxlength="300" placeholder="Ex.: Aula 3 — Enzimas">
+                    </div>
+                    <div class="campo">
+                        <span class="rotulo-campo" id="rotuloArquivos">Seu material</span>
+                        <div class="area-arquivos" id="areaArquivos" role="button" tabindex="0"
+                             aria-labelledby="rotuloArquivos" aria-describedby="dicaArquivos">
+                            {% include 'icones/upload.svg' %}
+                            <span><strong>Arraste os arquivos aqui</strong> ou clique para escolher</span>
+                            <span class="dica" id="dicaArquivos">PDF, DOCX, TXT, MD, PNG, JPG ou WEBP · até 5 arquivos · 16 MB no total</span>
+                        </div>
+                        <input type="file" id="entradaArquivos" class="visualmente-oculto" tabindex="-1" multiple
+                               accept=".pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.webp" aria-hidden="true">
+                        <ul class="lista-arquivos" id="listaArquivos" aria-live="polite"></ul>
+                    </div>
+                </div>
+
+                <div role="tabpanel" id="painel-texto" aria-labelledby="aba-texto" tabindex="0" hidden>
+                    <div class="campo">
+                        <label for="assuntoTexto">Assunto</label>
+                        <input type="text" id="assuntoTexto" maxlength="300" placeholder="Ex.: Anotações de Direito Administrativo">
+                    </div>
+                    <div class="campo">
+                        <label for="textoColado">Cole aqui suas anotações ou o texto da aula</label>
+                        <textarea id="textoColado" rows="8" maxlength="200000"></textarea>
+                    </div>
+                </div>
+
+                <fieldset class="grupo-quantidade">
+                    <legend class="rotulo-campo">Quantos flashcards?</legend>
+                    <div class="chips" id="chipsQuantidade">
+                        {% for quantidade in [10, 25, 50, 100, 200, 500] if quantidade <= max_cards %}
+                        <button type="button" class="chip" data-quantidade="{{ quantidade }}"
+                                aria-pressed="{{ 'true' if quantidade == 10 else 'false' }}">{{ quantidade }} cards
+                            <span class="preco-chip">{{ preco_para(quantidade) }}</span></button>
+                        {% endfor %}
+                    </div>
+                    <div class="quantidade-outra">
+                        <label for="quantidadeOutra" class="rotulo-inline">Outra quantidade:</label>
+                        <input type="number" id="quantidadeOutra" min="1" max="{{ max_cards }}" inputmode="numeric"
+                               placeholder="1 a {{ max_cards }}">
+                    </div>
+                    <span class="dica" id="quantidadeAviso" aria-live="polite"></span>
+                </fieldset>
+
+                <div class="total" aria-live="polite">
+                    <span>Baralho completo com <span id="quantidadeTotal">10</span> cards</span>
+                    <strong id="precoTotal">{{ preco_para(10) }}</strong>
+                    <span class="nota">Pagamento único via Pix. A prévia é grátis.</span>
+                </div>
+
+                <p class="aviso alerta" id="avisoPrevia" role="status" hidden></p>
+
+                {% if turnstile_site_key %}
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-language="pt-BR"></div>
+                {% endif %}
+
+                <button type="submit" class="botao" id="botaoGerar">Ver prévia grátis</button>
+
+                <div class="carregando" id="carregando" role="status" hidden>
+                    <span class="girando" aria-hidden="true"></span>
+                    <span id="carregandoTexto">Gerando sua prévia (plano do baralho + 5 cards)...</span>
+                </div>
+                <div class="aviso erro" id="mensagem" role="alert" hidden></div>
+
+                <p class="nota">Arquivos e textos são processados pela IA do Google e apagados após a geração.
+                    Veja a <a href="/privacidade">Política de Privacidade</a>.</p>
+            </form>
+        </div>
+
+        <ul class="beneficios">
+            <li>{% include 'icones/check.svg' %}<span>Tema, PDF, Word, fotos do caderno ou texto colado</span></li>
+            <li>{% include 'icones/check.svg' %}<span>Prévia grátis com o plano do baralho e 5 cards</span></li>
+            <li>{% include 'icones/check.svg' %}<span>Preço antes de gerar, pagamento único via Pix, sem cadastro</span></li>
+            <li>{% include 'icones/check.svg' %}<span>Arquivo pronto para importar no Anki, no computador ou no celular</span></li>
+        </ul>
+    </div>
+</section>
+
+<section class="secao" id="como-funciona">
+    <div class="largura">
+        <h2>Como funciona</h2>
+        <ol class="passos-grandes">
+            <li>
+                <h3>Descreva</h3>
+                <p>Escreva o tema, envie PDF, Word ou fotos do caderno, ou cole suas anotações. Escolha quantos cards quer
+                    e veja o preço na hora.</p>
+            </li>
+            <li>
+                <h3>Veja a prévia grátis</h3>
+                <p>A IA monta o plano do baralho e mostra 5 cards de amostra. Não gostou? Ajuste o tema e tente de novo.</p>
+            </li>
+            <li>
+                <h3>Pague e baixe</h3>
+                <p>Um Pix e o baralho completo é gerado na sua frente. Baixe o arquivo e importe no Anki, no computador
+                    ou no celular.</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="secao" id="exemplo">
+    <div class="largura">
+        <h2>Exemplo de baralho</h2>
+        <p class="subtitulo">Toque em um card para ver a resposta.</p>
+        <div class="baralho" id="baralhoExemplo"
+             data-cards='{{ [
+                ["Em que parte da célula ocorre o Ciclo de Krebs?", "Na matriz mitocondrial (nas células eucariontes)."],
+                ["Qual remédio constitucional protege direito líquido e certo não amparado por habeas corpus ou habeas data?", "O mandado de segurança (art. 5º, LXIX, CF/88)."],
+                ["O que significa \"give up\"?", "Desistir. Ex.: \"Don’t give up now!\" — Não desista agora!"]
+             ] | tojson }}'></div>
+    </div>
+</section>
+
+<section class="secao" id="precos">
+    <div class="largura">
+        <h2>Preços</h2>
+        <p class="subtitulo">Pagamento único por baralho, via Pix. Sem assinatura, sem cadastro.</p>
+        <div class="cartao cartao-tabela">
+            <table class="tabela-precos">
+                <caption class="visualmente-oculto">Preço por quantidade de flashcards</caption>
+                <thead><tr><th scope="col">Quantidade</th><th scope="col">Preço</th></tr></thead>
+                <tbody>
+                    {% for faixa in faixas_preco %}
+                    <tr><td>Até {{ faixa.ate }} flashcards</td><td>{{ faixa.texto }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="secao faq" id="perguntas">
+    <div class="largura">
+        <h2>Dúvidas frequentes</h2>
+        <details>
+            <summary>O que é o Anki?</summary>
+            <p>Um aplicativo de estudo com repetição espaçada: ele mostra cada card no momento em que você está prestes a
+                esquecê-lo. É gratuito no computador e no Android (AnkiDroid); no iPhone, o app oficial é o AnkiMobile.</p>
+        </details>
+        <details>
+            <summary>Como importo o baralho?</summary>
+            <ul>
+                <li><strong>Computador:</strong> dê dois cliques no arquivo .apkg baixado, ou use Arquivo → Importar no Anki.</li>
+                <li><strong>Android (AnkiDroid):</strong> abra o arquivo baixado e escolha o AnkiDroid, ou use o menu Importar do app.</li>
+                <li><strong>iPhone (AnkiMobile):</strong> toque no arquivo baixado e escolha “Abrir no AnkiMobile”.</li>
+            </ul>
+        </details>
+        <details>
+            <summary>O que é a prévia grátis?</summary>
+            <p>Antes de pagar, você vê o plano de subtópicos e 5 cards de amostra. São até 3 prévias grátis por dia. Se as
+                prévias do dia acabarem, você ainda pode comprar o baralho direto, sem prévia.</p>
+        </details>
+        <details>
+            <summary>Posso fechar a página depois de pagar?</summary>
+            <p>Pode. Cada pedido tem um link próprio, salvo também neste navegador. Ao voltar, a geração continua de onde
+                parou e o download fica disponível por 30 dias.</p>
+        </details>
+        <details>
+            <summary>E se a geração falhar ou eu não gostar?</summary>
+            <p>Se a IA não conseguir gerar pelo menos 90% dos cards, você escolhe entre ficar com os cards gerados e receber
+                de volta a parte proporcional, ou receber o reembolso total. Para outros problemas, veja a política de
+                reembolso nos <a href="/termos">Termos de uso</a>.</p>
+        </details>
+        <details>
+            <summary>O que acontece com os arquivos que eu envio?</summary>
+            <p>São processados pela IA do Google (Gemini) só para gerar o seu baralho e apagados quando a geração termina.
+                Detalhes na <a href="/privacidade">Política de Privacidade</a>.</p>
+        </details>
+        <details>
+            <summary>Os cards podem ter erros?</summary>
+            <p>Podem: o conteúdo é gerado por IA. Confira números de artigos, prazos, doses e datas antes de memorizar,
+                principalmente para concursos e para a área da saúde.</p>
+        </details>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if turnstile_site_key %}
+<script nonce="{{ csp_nonce }}" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endif %}
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/comum.js') }}?v={{ versao_estaticos }}"></script>
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/inicio.js') }}?v={{ versao_estaticos }}"></script>
+{% endblock %}

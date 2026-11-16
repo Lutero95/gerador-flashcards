@@ -30,6 +30,13 @@ uploads
 output
 *.apkg
 *.log
+local.db
+
+# Testes, análises e migrações (as migrações rodam fora da Vercel: `alembic upgrade head`)
+tests
+analise
+migrations
+alembic.ini
 
 # Git
 .git
@@ -39,6 +46,6 @@ output
 COMO_USAR.txt
 exemplo.json
 
-# Old app (manter apenas api/index.py)
+# Execução local (na Vercel a entrada é api/index.py, que usa o mesmo create_app())
 app.py
 

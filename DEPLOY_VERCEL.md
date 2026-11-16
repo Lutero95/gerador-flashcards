@@ -1,5 +1,11 @@
 # 🚀 Deploy no Vercel - Gerador de Flashcards Anki
 
+> ⚠️ **Desde a Fase 1 do `PLANO_DE_IMPLEMENTACAO.md`**, a Vercel roda o mesmo código do ambiente local (`api/index.py` chama `create_app()`), **com cobrança via Pix**. Antes de fazer deploy:
+> 1. Crie um Postgres (Neon ou Supabase) e configure na Vercel: `APP_ENV=production`, `DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `URL_PUBLICA`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET` e `CRON_SECRET` (este último ativa a limpeza diária do `vercel.json`).
+> 2. Rode as migrações contra esse banco a partir da sua máquina: `DATABASE_URL=... alembic upgrade head`.
+> 3. Em produção a aplicação **se recusa a iniciar** se faltar alguma dessas variáveis.
+> 4. O plano Hobby da Vercel proíbe uso comercial (ver `ANALISE_PRECOS_E_CUSTOS.md`).
+
 ## 📌 Pré-requisitos
 
 1. Conta no GitHub (gratuita)
@@ -100,11 +106,19 @@ O Vercel detecta automaticamente e faz o **redeploy automaticamente**! ✨
 
 ### Variáveis de Ambiente
 
-Se precisar adicionar variáveis de ambiente:
+**⚠️ IMPORTANTE**: Para usar a geração automática de flashcards com Gemini, você precisa configurar a chave da API:
 
-1. Vá em **"Settings"** → **"Environment Variables"**
-2. Adicione as variáveis necessárias
-3. Faça redeploy
+1. Obtenha sua chave da API do Gemini em: https://makersuite.google.com/app/apikey
+2. No painel do Vercel, vá em **"Settings"** → **"Environment Variables"**
+3. Clique em **"Add New"**
+4. Adicione:
+   - **Name**: `GEMINI_API_KEY`
+   - **Value**: Sua chave da API do Gemini
+   - **Environment**: Selecione todas (Production, Preview, Development)
+5. Clique em **"Save"**
+6. Faça um **redeploy** do projeto para aplicar as mudanças
+
+> 💡 **Dica**: As variáveis de ambiente são seguras e não aparecem no código público!
 
 ---
 

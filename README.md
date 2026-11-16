@@ -27,6 +27,16 @@ py -m pip install -r requirements.txt
    
    > **Nota para Windows**: Use `py -m pip` em vez de apenas `pip`
 
+3. Configure a chave da API do Gemini:
+   - Copie o arquivo `.env.example` para `.env`:
+   ```bash
+   copy .env.example .env
+   ```
+   - Abra o arquivo `.env` e substitua `sua_chave_aqui` pela sua chave real do Gemini
+   - Obtenha sua chave em: https://makersuite.google.com/app/apikey
+   
+   > **Importante**: O arquivo `.env` não será enviado para o GitHub (já está no .gitignore)
+
 ## 🚀 Deploy no Vercel (Recomendado)
 
 **Quer hospedar seu gerador online gratuitamente?**
@@ -122,37 +132,67 @@ Você também pode usar uma lista direta:
 
 ```
 gerador-flashcards/
-│
-├── api/                   # Serverless functions (Vercel)
-│   └── index.py          # API principal (Flask adaptado)
-│
-├── templates/            # Templates HTML
-│   └── index.html       # Interface web
-│
-├── app.py                # Servidor Flask local
-├── requirements.txt      # Dependências do projeto
-├── vercel.json          # Configuração do Vercel
-├── .vercelignore        # Arquivos ignorados no deploy
-│
-├── README.md            # Documentação principal
-├── DEPLOY_VERCEL.md     # Guia de deploy no Vercel
-├── COMO_USAR.txt        # Guia rápido de uso
-└── exemplo.json         # Arquivo de exemplo para testes
+├── app.py                 # Execução local: aplica migrações e sobe o servidor
+├── api/index.py           # Entrada da Vercel: usa o mesmo create_app()
+├── app/
+│   ├── __init__.py        # create_app()
+│   ├── config.py          # Variáveis de ambiente, padrões e validação de produção
+│   ├── db.py / models.py  # SQLAlchemy: Pedido, Pagamento, Card, EventoWebhook, UsoIA, CotaPrevia
+│   ├── pedidos.py         # Máquina de estados do pedido
+│   ├── precos.py          # Faixas de preço (centavos)
+│   ├── ia/                # Provedor Gemini (google-genai), prompts e orquestração
+│   ├── pagamentos/        # Mercado Pago (Pix)
+│   ├── exportacao/        # .apkg e PDF gerados na hora do download
+│   ├── rotas/             # Páginas, API e webhooks
+│   ├── templates/         # Páginas (base, início, pedido, termos, privacidade) e ícones SVG
+│   └── static/            # CSS e JavaScript (sem framework; carregados com CSP)
+├── migrations/            # Alembic
+├── tests/                 # pytest
+└── .env.example           # Modelo de configuração (só placeholders)
 ```
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Flask**: Framework web Python
-- **genanki**: Biblioteca para gerar arquivos Anki
-- **HTML/CSS/JavaScript**: Interface web moderna
+- **Flask 3**: Framework web Python
+- **SQLAlchemy 2 + Alembic**: banco de dados (SQLite local, Postgres em produção)
+- **google-genai**: API do Gemini com saída estruturada
+- **genanki / reportlab**: geração do .apkg e do PDF de fontes
+- **Mercado Pago**: pagamento via Pix
 
 ## ⚙️ Configuração
 
-O servidor está configurado para:
-- Porta: 5000
-- Host: 0.0.0.0 (acessível na rede local)
-- Tamanho máximo de arquivo: 16MB
-- Modo debug: Ativado (desative em produção)
+Todas as opções vêm de variáveis de ambiente; veja `.env.example`. Por padrão:
+- Porta 5000, escutando só em 127.0.0.1, com debug desligado (`FLASK_DEBUG=1` liga)
+- Banco `sqlite:///local.db` (as migrações rodam sozinhas no `python app.py`; manualmente: `alembic upgrade head`)
+- Até `MAX_CARDS=500` cards por pedido
+- Prévias grátis: 3 por navegador e 15 por IP por dia, com teto de US$ 0,50/dia no total; esgotadas, a compra
+  direta (sem prévia) continua disponível
+- Rate limit por IP, Cloudflare Turnstile (obrigatório em produção), CSP com nonce e demais cabeçalhos de segurança
+- Limpeza diária (`/tarefas/limpeza`, Cron da Vercel): expira pedidos não pagos após 7 dias e descarta o material
+  enviado pelos alunos
+
+Testes: `pip install -r requirements-dev.txt` e depois `python -m pytest tests`.
+
+## 🔄 Como funciona um pedido
+
+1. **Prévia grátis** (`POST /api/pedidos`): o aluno descreve o tema (e pode anexar PDF, DOCX, TXT, imagens ou colar
+   texto) e escolhe a quantidade — o preço aparece antes (`GET /api/preco`). A IA mais barata monta o plano de
+   subtópicos e gera 5 cards de amostra.
+2. **Pagamento** (`POST /api/pedidos/<token>/pagamento`): Pix com e-mail, na página `/pedido/<token>`.
+3. **Geração em lotes** (`POST /api/pedidos/<token>/lotes/<n>`): depois de pago, a página pede um lote de ~40 cards
+   por vez, mostrando o progresso. Fechou a aba? Ao reabrir, continua do lote seguinte. Cada lote recebe só a sua
+   fatia do material, as perguntas já existentes (para não repetir) e tenta o modelo reserva se o principal falhar.
+4. **Entrega**: `.apkg` e PDF de fontes gerados na hora do download. Se a IA não chegar a 90% do pedido, o aluno
+   escolhe entre ficar com os cards gerados + reembolso proporcional, ou reembolso total.
+
+## 💳 Como testar pagamentos sem dinheiro real
+
+1. **Dia a dia (padrão em desenvolvimento):** `PAYMENT_PROVIDER=fake`. Gere um baralho, informe um e-mail na página do pedido e use o painel amarelo **Modo de teste** para *Simular aprovação / recusa / expiração*. As rotas `POST /dev/pagamentos/<id>/aprovar|recusar|expirar` só existem com `APP_ENV=development`, e a aplicação não sobe com o fake em produção.
+2. **Integração real em modo teste:** `PAYMENT_PROVIDER=mercadopago` com as **credenciais de teste** (`TEST-...`) e contas de usuário de teste do painel de desenvolvedor do Mercado Pago.
+3. **Webhook na sua máquina:** exponha o Flask com um túnel (`cloudflared tunnel --url http://localhost:5000` ou `ngrok http 5000`), defina `URL_PUBLICA` com a URL https do túnel, cadastre `<URL_PUBLICA>/webhooks/mercadopago` no painel de Webhooks (modo teste), configure `MERCADOPAGO_WEBHOOK_SECRET` e use **Simular notificação** no painel.
+4. **Antes de produção:** um ambiente de *preview* na Vercel com credenciais de teste e banco separado.
+
+Cada pedido tem uma página própria (`/pedido/<token>`): pode fechar a aba, recarregar ou reiniciar o servidor que o pedido continua lá. A página inicial lista os últimos 5 pedidos deste navegador.
 
 ## 🔒 Segurança
 
@@ -182,7 +222,7 @@ py -m pip install -r requirements.txt
 ### Erro: "Port already in use"
 Mude a porta no arquivo `app.py`:
 ```python
-app.run(debug=True, host='0.0.0.0', port=5001)  # Use outra porta
+app.run(debug=debug, host=host, port=5001)  # Use outra porta
 ```
 
 ### Erro ao gerar APKG

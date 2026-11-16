@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Seu pedido — Gerador de Flashcards{% endblock %}
+
+{% block atributos_main %}data-token="{{ token }}"{% endblock %}
+
+{% block conteudo %}
+<div class="largura secao">
+    {% if not existe %}
+    <h1>Pedido não encontrado</h1>
+    <p class="subtitulo">Confira se o link está completo: os links de pedido são longos e únicos.</p>
+    <a class="botao" href="/">Criar um baralho</a>
+    {% else %}
+    <ol class="passos" id="passos" aria-label="Etapas">
+        <li class="feito"><span class="numero">1</span><span class="rotulo">Descreva</span></li>
+        <li><span class="numero">2</span><span class="rotulo">Veja a prévia</span></li>
+        <li><span class="numero">3</span><span class="rotulo">Pague e baixe</span></li>
+    </ol>
+
+    <div class="carregando" id="carregandoPedido" role="status">
+        <span class="girando" aria-hidden="true"></span><span>Carregando seu pedido...</span>
+    </div>
+
+    <div id="conteudoPedido" hidden>
+        <header class="pedido-topo">
+            <h1 id="nomeDeck"></h1>
+            <p class="resumo" id="resumo"></p>
+            <div><span class="selo" id="selo" role="status" aria-live="polite"></span></div>
+            <p class="nota">Pode fechar esta página: seu pedido fica salvo neste link.
+                <button type="button" class="link-botao" id="copiarLink">Copiar link</button></p>
+        </header>
+
+        <div class="aviso erro" id="mensagem" role="alert" hidden></div>
+
+        <div class="conteudo-pedido" id="colunas">
+            <section id="secaoPrevia" aria-labelledby="tituloPrevia" hidden>
+                <h2 id="tituloPrevia">Prévia grátis</h2>
+                <p class="nota">Toque em um card para ver a resposta.</p>
+                <div class="baralho" id="listaPrevia"></div>
+                <div class="bloco" id="blocoSubtopicos" hidden>
+                    <h3>O baralho completo vai cobrir</h3>
+                    <ul class="subtopicos" id="listaSubtopicos"></ul>
+                </div>
+            </section>
+
+            <div id="colunaAcoes">
+                <section class="cartao" id="secaoCompra" aria-labelledby="tituloCompra" hidden>
+                    <h2 id="tituloCompra">Gostou? Gere o baralho completo</h2>
+                    <div class="total">
+                        <span id="totalCompra"></span>
+                        <strong id="precoCompra"></strong>
+                    </div>
+                    <form id="formPagamento">
+                        <div class="campo">
+                            <label for="email">Seu e-mail</label>
+                            <input type="email" id="email" required autocomplete="email" placeholder="voce@exemplo.com"
+                                   aria-describedby="dicaEmail">
+                            <span class="dica" id="dicaEmail">Usado no pagamento e para falarmos com você sobre este pedido.</span>
+                        </div>
+                        <div class="botoes">
+                            <button type="submit" class="botao" id="gerarPix">Pagar com Pix</button>
+                            <button type="button" class="botao secundario" id="ajustarTema">Ajustar tema</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="cartao" id="secaoPix" aria-labelledby="tituloPix" hidden>
+                    <h2 id="tituloPix">Pague com Pix</h2>
+                    <div class="pix">
+                        <div class="qr"><img id="qrCode" alt="QR code do Pix para pagar este pedido" width="200" height="200"></div>
+                        <button type="button" class="botao" id="copiarPix">Copiar código Pix</button>
+                        <div>
+                            <label for="codigoPix">Pix copia e cola</label>
+                            <textarea id="codigoPix" readonly></textarea>
+                        </div>
+                        <p class="contador" id="contador"></p>
+                    </div>
+                    <p class="nota">Assim que o pagamento for confirmado, a geração do baralho começa aqui automaticamente.</p>
+
+                    <div class="painel-teste" id="painelTeste" hidden>
+                        <strong>Modo de teste: nenhum dinheiro envolvido</strong>
+                        <div class="botoes">
+                            <button type="button" class="botao" data-acao="aprovar">Simular aprovação</button>
+                            <button type="button" class="botao" data-acao="recusar">Simular recusa</button>
+                            <button type="button" class="botao" data-acao="expirar">Simular expiração</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="cartao" id="secaoGeracao" aria-labelledby="tituloGeracao" hidden>
+                    <h2 id="tituloGeracao">Gerando seu baralho</h2>
+                    <div class="barra" id="barra" role="progressbar" aria-labelledby="tituloGeracao"
+                         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="barraPreenchida"></div></div>
+                    <p id="progressoTexto" aria-live="polite"></p>
+                    <p class="nota" id="etapaTexto"></p>
+                    <p class="nota">Pode fechar a página: ao voltar a este link, a geração continua de onde parou.</p>
+                </section>
+
+                <section class="cartao" id="secaoResolucao" aria-labelledby="tituloResolucao" hidden>
+                    <h2 id="tituloResolucao">Não conseguimos gerar o baralho completo</h2>
+                    <p id="resolucaoTexto"></p>
+                    <div class="botoes">
+                        <button type="button" class="botao" id="resolverParcial"></button>
+                        <button type="button" class="botao secundario" id="resolverTotal"></button>
+                    </div>
+                </section>
+
+                <section class="cartao" id="secaoConcluido" aria-labelledby="tituloConcluido" hidden>
+                    <h2 id="tituloConcluido" tabindex="-1">Seu baralho está pronto</h2>
+                    <p id="resumoFinal"></p>
+                    <div class="botoes">
+                        <a class="botao" id="baixarApkg" href="#" download>Baixar arquivo para o Anki (.apkg)</a>
+                        <a class="botao secundario" id="baixarPdf" href="#" download>Baixar PDF com as fontes</a>
+                    </div>
+                    <p class="nota" id="disponivelAte"></p>
+                    <h3>Como importar no Anki</h3>
+                    <ol class="tutorial">
+                        <li><strong>Computador:</strong> dê dois cliques no arquivo .apkg, ou use Arquivo → Importar no Anki.</li>
+                        <li><strong>Android:</strong> abra o arquivo baixado e escolha o AnkiDroid.</li>
+                        <li><strong>iPhone:</strong> toque no arquivo e escolha “Abrir no AnkiMobile”.</li>
+                    </ol>
+                    <div class="botoes">
+                        <a class="botao secundario" href="/">Criar outro baralho</a>
+                    </div>
+                </section>
+
+                <p class="aviso info" id="reembolsoInfo" hidden></p>
+            </div>
+        </div>
+
+        <p class="nota bloco" id="avisoIa"></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if existe %}
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/comum.js') }}?v={{ versao_estaticos }}"></script>
+<script nonce="{{ csp_nonce }}" src="{{ url_for('static', filename='js/pedido.js') }}?v={{ versao_estaticos }}"></script>
+{% endif %}
+{% endblock %}
