@@ -1,271 +1,107 @@
-# 📚 Gerador de Flashcards Anki
+# Gerador de Flashcards com IA
 
-Sistema web para gerar arquivos APKG (Anki) a partir de arquivos JSON contendo perguntas e respostas.
+Gera baralhos de flashcards para o Anki a partir de um tema ou de material de estudo (PDF, DOCX, TXT, imagens), usando o Google Gemini. Você vê uma prévia grátis, paga via Pix e baixa o arquivo `.apkg`.
 
-## 🚀 Funcionalidades
+**Site:** https://gerador-flashcards.vercel.app
 
-- Upload de arquivos JSON com perguntas e respostas
-- Geração automática de decks no formato APKG
-- Download do arquivo gerado para importação no Anki
-- Interface web moderna e intuitiva
-- Suporte a drag-and-drop de arquivos
-- Validação de formato JSON
-
-## 📋 Pré-requisitos
-
-- Python 3.7 ou superior
-- pip (gerenciador de pacotes Python)
-
-## 🔧 Instalação
-
-1. Clone ou baixe este repositório
-
-2. Instale as dependências:
-```bash
-py -m pip install -r requirements.txt
-```
-   
-   > **Nota para Windows**: Use `py -m pip` em vez de apenas `pip`
-
-3. Configure a chave da API do Gemini:
-   - Copie o arquivo `.env.example` para `.env`:
-   ```bash
-   copy .env.example .env
-   ```
-   - Abra o arquivo `.env` e substitua `sua_chave_aqui` pela sua chave real do Gemini
-   - Obtenha sua chave em: https://makersuite.google.com/app/apikey
-   
-   > **Importante**: O arquivo `.env` não será enviado para o GitHub (já está no .gitignore)
-
-## 🚀 Deploy no Vercel (Recomendado)
-
-**Quer hospedar seu gerador online gratuitamente?**
-
-➡️ Siga o guia completo em **[DEPLOY_VERCEL.md](DEPLOY_VERCEL.md)**
-
-Com o Vercel, sua aplicação fica:
-- ✅ Acessível 24/7 na internet
-- ✅ Com HTTPS gratuito
-- ✅ Deploy automático ao atualizar o código
-- ✅ Sem custo (plano gratuito generoso)
-
-**Basta:**
-1. Subir o código para o GitHub
-2. Conectar ao Vercel
-3. Pronto! URL pública gerada automaticamente
+<!-- Demonstração: vou adicionar a imagem em docs/demo.gif -->
+![Demonstração](docs/demo.gif)
 
 ---
 
-## ▶️ Como Usar Localmente
+## Funcionalidades
 
-1. Inicie o servidor:
+- **Geração por IA** a partir de um tema livre ou de até 5 arquivos (`.pdf`, `.docx`, `.txt`, `.md`, `.png`, `.jpg`, `.webp`).
+- **Prévia gratuita:** antes de pagar, o usuário recebe o plano do baralho e os primeiros cards (5, por padrão).
+- **Pagamento via Pix** (Mercado Pago), com webhook validado por assinatura. Em desenvolvimento há um provedor falso que simula aprovação e recusa sem dinheiro real.
+- **Exportação:** baralho `.apkg` pronto para importar no Anki e um PDF com as fontes citadas pela IA.
+- **Conversão de JSON para Anki:** o endpoint `POST /upload` recebe um JSON de cards (`{"nome_deck": ..., "cards": [{"pergunta", "resposta"}]}` ou uma lista simples) e devolve o `.apkg`.
+
+## Como a IA é usada
+
+A integração fica em [`app/ia/`](app/ia/): `gemini.py` (provedor), `geracao.py` (orquestração), `prompts.py` (prompts e schemas) e `material.py` (tratamento dos arquivos).
+
+- **Google Gemini via SDK `google-genai`.** O provedor implementa uma interface (`app/ia/base.py`), então dá para trocar de LLM sem mexer na orquestração. Os modelos vêm da configuração: um modelo barato para a prévia e um intermediário para a geração paga.
+- **Saída estruturada.** Cada chamada envia `response_mime_type="application/json"` e `response_schema` com um modelo Pydantic (`PlanoPrevia`, `LoteGerado`). A resposta é lida em `resposta.parsed` ou validada com `model_validate_json`. Não há extração de JSON por regex. Uma resposta fora do formato conta como erro temporário e é tentada de novo.
+- **Modelo de fallback e retentativas.** `chamar_ia` alterna entre o modelo principal e o reserva (principal, reserva, principal, reserva), porque repetir de imediato um modelo sobrecarregado costuma falhar de novo. Erros 429/5xx e timeouts são temporários. Erros 4xx são permanentes e tiram o modelo da fila. As retentativas automáticas do SDK estão desligadas para que o controle de tempo fique com a aplicação.
+- **Thinking budget.** Raciocínio desligado na prévia (`THINKING_PREVIA=0`) e limitado a 512 tokens nos lotes pagos (`THINKING_GERACAO`). Se um modelo recusar o orçamento com erro 400, a chamada é refeita sem ele e o modelo é lembrado para não pagar essa recusa de novo.
+- **Geração em lotes com orçamento de tempo.** A prévia gera o plano: os subtópicos, cada um com uma quantidade de cards. O restante é dividido em lotes de até 40 cards, e o front-end pede um lote por requisição, para caber no limite de 60 s da função serverless da Vercel. Cada requisição tem um prazo de 45 s (`TEMPO_MAX_LOTE_S`). Cada tentativa recebe como timeout o tempo que sobra, menos uma reserva de 15 s para o modelo reserva, e nenhuma chamada começa com menos de 10 s restantes. Lotes que ficam incompletos são completados em até duas rodadas extras. O pedido só é entregue com pelo menos 90% dos cards; abaixo disso, o cliente escolhe entre reembolso total ou ficar com os cards gerados e receber um reembolso parcial.
+- **Material do aluno e Files API.** O texto de PDF, DOCX e TXT é extraído no servidor e fatiado entre os lotes (cada lote recebe só a sua parte). Imagens e PDFs escaneados vão para a Files API do Gemini. O PDF escaneado é dividido em partes, uma por lote, para não reenviar o documento inteiro a cada chamada. Antes de qualquer envio, o tipo real de cada arquivo é conferido pela assinatura binária (magic bytes) e o número de páginas é limitado conforme o tamanho do pedido. Terminada a geração, os arquivos são apagados do provedor e o texto é apagado do banco.
+- **Como evitar cards duplicados.** Os prompts pedem que cada card cubra um aspecto distinto, e o prompt de cada lote inclui as perguntas que já existem no baralho (até 200) com a instrução de não repeti-las nem reformulá-las. Na aplicação, cada pergunta é normalizada (minúsculas, sem acentos e sem pontuação) e descartada se o hash coincidir com o de outra ou se a sobreposição de palavras (Jaccard) for de 80% ou mais.
+- **Registro de uso.** Toda chamada, com ou sem sucesso, grava modelo, tokens, latência e custo estimado na tabela `UsoIA`.
+
+## Controle de custo e anti-abuso
+
+Implementado em [`app/seguranca.py`](app/seguranca.py):
+
+- **Limite de prévias:** 3 por dia por navegador (cookie assinado) e 15 por dia por IP. O IP é guardado apenas como HMAC, nunca em claro.
+- **Teto diário de gasto:** o custo estimado das prévias do dia é somado a partir de `UsoIA`. Acima de US$ 0,50 (configurável), novas prévias são suspensas e a compra direta continua disponível. Modelos sem preço cadastrado são estimados pelo preço mais caro.
+- **Cloudflare Turnstile:** o token é validado no servidor antes de gerar uma prévia. Se o serviço estiver fora do ar, a prévia é bloqueada.
+- **Rate limit por IP:** contadores por minuto guardados no próprio banco, o que funciona em serverless sem Redis.
+- **Cache de prévias:** o mesmo tema (sem arquivos) com a mesma quantidade de cards reaproveita uma prévia recente sem chamar a IA.
+- **Outros:** limpeza diária de pedidos expirados via Cron da Vercel e cabeçalhos de segurança com CSP baseada em nonce.
+
+## Arquitetura
+
+```mermaid
+flowchart TD
+    A[Usuário: tema ou arquivos] --> B[POST /api/pedidos<br/>Turnstile, cotas, rate limit]
+    B --> C[Extração do material<br/>texto local ou Files API]
+    C --> D[Prévia no Gemini<br/>plano de subtópicos + 5 cards]
+    D --> E[Pagamento Pix<br/>Mercado Pago + webhook]
+    E --> F[Divisão do plano em lotes]
+    F --> G[Lote no Gemini<br/>schema Pydantic, fallback, prazo de 45 s]
+    G --> H[Validação<br/>limpeza e deduplicação]
+    H -->|faltam lotes| G
+    H -->|pedido completo| I[Exportação<br/>.apkg + PDF de fontes]
+```
+
+Estrutura do código:
+
+```
+app/
+  ia/            provedor Gemini, prompts/schemas, orquestração de lotes, tratamento de material
+  pagamentos/    interface de provedor, Mercado Pago, provedor falso e serviço de pagamento
+  exportacao/    .apkg (genanki) e PDF de fontes (reportlab)
+  rotas/         páginas, API de pedidos, webhooks, tarefas agendadas, rotas de desenvolvimento
+  models.py      modelos SQLAlchemy (pedido, card, lote, pagamento, uso de IA, cotas)
+  seguranca.py   rate limit, Turnstile, cotas e orçamento
+  config.py      configuração por variáveis de ambiente
+api/index.py     entrada da função serverless na Vercel
+migrations/      migrações Alembic
+tests/           testes com pytest
+```
+
+## Stack
+
+- **Back-end:** Python 3.12, Flask, SQLAlchemy 2, Alembic
+- **Banco:** PostgreSQL em produção, SQLite em desenvolvimento
+- **IA:** Google Gemini (`google-genai`), Pydantic
+- **Arquivos:** genanki (`.apkg`), reportlab (PDF), pypdf, python-docx
+- **Pagamento:** Mercado Pago (Pix)
+- **Infra:** Vercel (serverless + Cron), Cloudflare Turnstile
+- **Front-end:** HTML, CSS e JavaScript, sem framework
+
+## Como rodar localmente
+
 ```bash
-py app.py
-```
-   
-   > **Nota para Windows**: Use `py` em vez de `python`
-
-2. Abra seu navegador e acesse:
-```
-http://localhost:5000
+python -m venv venv
+venv\Scripts\activate            # Linux/Mac: source venv/bin/activate
+pip install -r requirements-dev.txt
+cp .env.example .env             # preencha pelo menos GEMINI_API_KEY
+python app.py                    # http://localhost:5000
 ```
 
-3. Prepare seu arquivo JSON no formato correto (veja exemplo abaixo)
+Em desenvolvimento, a aplicação usa SQLite (`local.db`), aplica as migrações automaticamente e usa o provedor de pagamento falso. O passo a passo completo está em [COMO_RODAR_LOCAL.md](COMO_RODAR_LOCAL.md), e o deploy em [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md).
 
-4. Faça upload do arquivo através da interface
+## Testes
 
-5. Clique em "Gerar Deck Anki"
-
-6. Baixe o arquivo APKG gerado
-
-7. Importe o arquivo no Anki
-
-## 📝 Formato do JSON
-
-O arquivo JSON deve seguir este formato:
-
-```json
-{
-  "nome_deck": "Meu Baralho de Estudos",
-  "cards": [
-    {
-      "pergunta": "Qual é a capital do Brasil?",
-      "resposta": "Brasília"
-    },
-    {
-      "pergunta": "Quanto é 2 + 2?",
-      "resposta": "4"
-    },
-    {
-      "pergunta": "Quem descobriu o Brasil?",
-      "resposta": "Pedro Álvares Cabral"
-    }
-  ]
-}
-```
-
-### Campos:
-
-- **nome_deck** (opcional): Nome do baralho que aparecerá no Anki. Se não fornecido, será usado "Flashcards"
-- **cards** (obrigatório): Lista de flashcards
-  - **pergunta** (obrigatório): Texto da frente do cartão
-  - **resposta** (obrigatório): Texto do verso do cartão
-
-### Formato alternativo (lista simples):
-
-Você também pode usar uma lista direta:
-
-```json
-[
-  {
-    "pergunta": "Qual é a capital do Brasil?",
-    "resposta": "Brasília"
-  },
-  {
-    "pergunta": "Quanto é 2 + 2?",
-    "resposta": "4"
-  }
-]
-```
-
-## 📁 Estrutura do Projeto
-
-```
-gerador-flashcards/
-├── app.py                 # Execução local: aplica migrações e sobe o servidor
-├── api/index.py           # Entrada da Vercel: usa o mesmo create_app()
-├── app/
-│   ├── __init__.py        # create_app()
-│   ├── config.py          # Variáveis de ambiente, padrões e validação de produção
-│   ├── db.py / models.py  # SQLAlchemy: Pedido, Pagamento, Card, EventoWebhook, UsoIA, CotaPrevia
-│   ├── pedidos.py         # Máquina de estados do pedido
-│   ├── precos.py          # Faixas de preço (centavos)
-│   ├── ia/                # Provedor Gemini (google-genai), prompts e orquestração
-│   ├── pagamentos/        # Mercado Pago (Pix)
-│   ├── exportacao/        # .apkg e PDF gerados na hora do download
-│   ├── rotas/             # Páginas, API e webhooks
-│   ├── templates/         # Páginas (base, início, pedido, termos, privacidade) e ícones SVG
-│   └── static/            # CSS e JavaScript (sem framework; carregados com CSP)
-├── migrations/            # Alembic
-├── tests/                 # pytest
-└── .env.example           # Modelo de configuração (só placeholders)
-```
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Flask 3**: Framework web Python
-- **SQLAlchemy 2 + Alembic**: banco de dados (SQLite local, Postgres em produção)
-- **google-genai**: API do Gemini com saída estruturada
-- **genanki / reportlab**: geração do .apkg e do PDF de fontes
-- **Mercado Pago**: pagamento via Pix
-
-## ⚙️ Configuração
-
-Todas as opções vêm de variáveis de ambiente; veja `.env.example`. Por padrão:
-- Porta 5000, escutando só em 127.0.0.1, com debug desligado (`FLASK_DEBUG=1` liga)
-- Banco `sqlite:///local.db` (as migrações rodam sozinhas no `python app.py`; manualmente: `alembic upgrade head`)
-- Até `MAX_CARDS=500` cards por pedido
-- Prévias grátis: 3 por navegador e 15 por IP por dia, com teto de US$ 0,50/dia no total; esgotadas, a compra
-  direta (sem prévia) continua disponível
-- Rate limit por IP, Cloudflare Turnstile (obrigatório em produção), CSP com nonce e demais cabeçalhos de segurança
-- Limpeza diária (`/tarefas/limpeza`, Cron da Vercel): expira pedidos não pagos após 7 dias e descarta o material
-  enviado pelos alunos
-
-Testes: `pip install -r requirements-dev.txt` e depois `python -m pytest tests`.
-
-## 🔄 Como funciona um pedido
-
-1. **Prévia grátis** (`POST /api/pedidos`): o aluno descreve o tema (e pode anexar PDF, DOCX, TXT, imagens ou colar
-   texto) e escolhe a quantidade — o preço aparece antes (`GET /api/preco`). A IA mais barata monta o plano de
-   subtópicos e gera 5 cards de amostra.
-2. **Pagamento** (`POST /api/pedidos/<token>/pagamento`): Pix com e-mail, na página `/pedido/<token>`.
-3. **Geração em lotes** (`POST /api/pedidos/<token>/lotes/<n>`): depois de pago, a página pede um lote de ~40 cards
-   por vez, mostrando o progresso. Fechou a aba? Ao reabrir, continua do lote seguinte. Cada lote recebe só a sua
-   fatia do material, as perguntas já existentes (para não repetir) e tenta o modelo reserva se o principal falhar.
-4. **Entrega**: `.apkg` e PDF de fontes gerados na hora do download. Se a IA não chegar a 90% do pedido, o aluno
-   escolhe entre ficar com os cards gerados + reembolso proporcional, ou reembolso total.
-
-## 💳 Como testar pagamentos sem dinheiro real
-
-1. **Dia a dia (padrão em desenvolvimento):** `PAYMENT_PROVIDER=fake`. Gere um baralho, informe um e-mail na página do pedido e use o painel amarelo **Modo de teste** para *Simular aprovação / recusa / expiração*. As rotas `POST /dev/pagamentos/<id>/aprovar|recusar|expirar` só existem com `APP_ENV=development`, e a aplicação não sobe com o fake em produção.
-2. **Integração real em modo teste:** `PAYMENT_PROVIDER=mercadopago` com as **credenciais de teste** (`TEST-...`) e contas de usuário de teste do painel de desenvolvedor do Mercado Pago.
-3. **Webhook na sua máquina:** exponha o Flask com um túnel (`cloudflared tunnel --url http://localhost:5000` ou `ngrok http 5000`), defina `URL_PUBLICA` com a URL https do túnel, cadastre `<URL_PUBLICA>/webhooks/mercadopago` no painel de Webhooks (modo teste), configure `MERCADOPAGO_WEBHOOK_SECRET` e use **Simular notificação** no painel.
-4. **Antes de produção:** um ambiente de *preview* na Vercel com credenciais de teste e banco separado.
-
-Cada pedido tem uma página própria (`/pedido/<token>`): pode fechar a aba, recarregar ou reiniciar o servidor que o pedido continua lá. A página inicial lista os últimos 5 pedidos deste navegador.
-
-## 🔒 Segurança
-
-- Validação de tipo de arquivo (apenas .json)
-- Validação de estrutura JSON
-- Nomes de arquivo seguros (usando `secure_filename`)
-- Limpeza automática de arquivos temporários
-
-## 🐛 Solução de Problemas
-
-### Erro: "pip não é reconhecido" (Windows)
-Use o Python launcher do Windows:
 ```bash
-py -m pip install -r requirements.txt
-```
-E para executar o servidor:
-```bash
-py app.py
+python -m pytest tests
 ```
 
-### Erro: "Module not found"
-Certifique-se de instalar todas as dependências:
-```bash
-py -m pip install -r requirements.txt
-```
+Os testes não chamam a IA nem o Mercado Pago de verdade: usam provedores falsos e um banco SQLite temporário. Eles estão organizados pelas fases do [plano de implementação](PLANO_DE_IMPLEMENTACAO.md).
 
-### Erro: "Port already in use"
-Mude a porta no arquivo `app.py`:
-```python
-app.run(debug=debug, host=host, port=5001)  # Use outra porta
-```
+## Licença
 
-### Erro ao gerar APKG
-Verifique se o JSON está no formato correto e contém as chaves "pergunta" e "resposta" em todos os cards.
-
-## 📱 Acesso na Rede Local
-
-Para acessar de outros dispositivos na mesma rede:
-
-1. Descubra o IP da máquina que está executando o servidor:
-```bash
-# Windows
-ipconfig
-
-# Linux/Mac
-ifconfig
-```
-
-2. Acesse de outros dispositivos usando:
-```
-http://SEU_IP:5000
-```
-
-## 📄 Licença
-
-Este projeto é de código aberto e está disponível para uso livre.
-
-## 👨‍💻 Contribuições
-
-Contribuições são bem-vindas! Sinta-se à vontade para:
-- Reportar bugs
-- Sugerir novas funcionalidades
-- Enviar pull requests
-
-## 📞 Suporte
-
-Se encontrar problemas, verifique:
-1. Se todas as dependências foram instaladas
-2. Se o formato do JSON está correto
-3. Se a porta 5000 está disponível
-4. Os logs no terminal para mensagens de erro
-
----
-
-Desenvolvido com ❤️ para facilitar a criação de flashcards no Anki
-
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
